@@ -2,15 +2,17 @@ import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 
-def generate_liquidity_profile(price, lower_bound, upper_bound, points=50, A=0, B=0, C=0, D=0, E=1):
+def generate_liquidity_profile(price, lower_bound, upper_bound, points=100, A=0, B=0, C=0, D=0, E=1):
     prices = np.linspace(lower_bound, upper_bound, points)
     x = np.abs(prices - price)  # x is the absolute difference from the current price
-    liquidity = np.maximum(0, A + B * x + C * x**2 + D * np.exp(-x**2 / max(E, 0.1)))
+    liquidity = np.maximum(0, A + B * x + C * (x**2) + D * np.exp(-x**2 / max(E, 0.1)))
     return prices, liquidity
 
 def bin_liquidity_profile(prices, liquidity, num_bins):
     bins = np.linspace(prices.min(), prices.max(), num_bins + 1)
-    binned_liquidity = np.histogram(prices, bins, weights=liquidity)[0] / np.histogram(prices, bins)[0]
+    bin_totals, _ = np.histogram(prices, bins, weights=liquidity)
+    bin_counts, _ = np.histogram(prices, bins)
+    binned_liquidity = np.divide(bin_totals, bin_counts, where=bin_counts!=0)
     bin_centers = (bins[:-1] + bins[1:]) / 2
     return bin_centers, binned_liquidity
 
@@ -24,7 +26,7 @@ upper_bound = st.number_input("Enter the upper bound of the price range:", min_v
 st.subheader("Liquidity Profile Below Price")
 A_below = st.slider("A (Flat Liquidity Below)", 0.0, 10.0, 1.0)
 B_below = st.slider("B (Linear Coefficient Below)", 0.0, 1.0, 0.1)
-C_below = st.slider("C (Quadratic Coefficient Below)", 0.0, 0.1, 0.01)
+C_below = st.slider("C (Quadratic Coefficient Below)", 0.0, 1.0, 0.01)
 D_below = st.slider("D (Gaussian Height Below)", 0.0, 10.0, 1.0)
 E_below = st.slider("E (Gaussian Width Below)", 0.1, 10.0, 1.0)
 bins_below = st.slider("Number of Bins Below", 1, 20, 10)
@@ -32,7 +34,7 @@ bins_below = st.slider("Number of Bins Below", 1, 20, 10)
 st.subheader("Liquidity Profile Above Price")
 A_above = st.slider("A (Flat Liquidity Above)", 0.0, 10.0, 1.0)
 B_above = st.slider("B (Linear Coefficient Above)", 0.0, 1.0, 0.1)
-C_above = st.slider("C (Quadratic Coefficient Above)", 0.0, 0.1, 0.01)
+C_above = st.slider("C (Quadratic Coefficient Above)", 0.0, 1.0, 0.01)
 D_above = st.slider("D (Gaussian Height Above)", 0.0, 10.0, 1.0)
 E_above = st.slider("E (Gaussian Width Above)", 0.1, 10.0, 1.0)
 bins_above = st.slider("Number of Bins Above", 1, 20, 10)
