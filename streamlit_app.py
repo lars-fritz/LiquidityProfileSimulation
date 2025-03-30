@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-import plotly.express as px
+import plotly.graph_objects as go
 
 def generate_liquidity_profile(price, lower_bound, upper_bound, points=10):
     prices = np.linspace(lower_bound, upper_bound, points)
@@ -26,11 +26,29 @@ def validate_inputs():
 
 if st.button("Generate Liquidity Profile"):
     if validate_inputs():
-        prices, liquidity = generate_liquidity_profile(price, lower_bound, upper_bound)
-        df = pd.DataFrame({"Price": prices, "Liquidity": liquidity})
-        st.write(df)
+        # Generate two separate liquidity profiles
+        prices_below, liquidity_below = generate_liquidity_profile(price, lower_bound, price)
+        prices_above, liquidity_above = generate_liquidity_profile(price, price, upper_bound)
         
-        # Plotting the liquidity profile with Plotly
-        fig = px.line(df, x="Price", y="Liquidity", markers=True, title="Liquidity Profile")
-        fig.update_layout(xaxis_title="Price", yaxis_title="Liquidity")
+        df_below = pd.DataFrame({"Price": prices_below, "Liquidity": liquidity_below})
+        df_above = pd.DataFrame({"Price": prices_above, "Liquidity": liquidity_above})
+        
+        st.write("Liquidity Profile Below Price:")
+        st.write(df_below)
+        
+        st.write("Liquidity Profile Above Price:")
+        st.write(df_above)
+        
+        # Create interactive scatter plot
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=df_below["Price"], y=df_below["Liquidity"], mode='markers+lines', name='Below Price', marker=dict(size=10), line=dict(dash='dash')))
+        fig.add_trace(go.Scatter(x=df_above["Price"], y=df_above["Liquidity"], mode='markers+lines', name='Above Price', marker=dict(size=10)))
+        
+        fig.update_layout(
+            title="Interactive Liquidity Profile",
+            xaxis_title="Price",
+            yaxis_title="Liquidity",
+            dragmode="pan"
+        )
+        
         st.plotly_chart(fig, use_container_width=True)
