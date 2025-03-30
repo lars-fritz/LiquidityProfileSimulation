@@ -3,9 +3,16 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
-def generate_liquidity_profile(price, lower_bound, upper_bound, points=10):
+def generate_liquidity_profile(price, lower_bound, upper_bound, points=10, profile_type='gauss'):
     prices = np.linspace(lower_bound, upper_bound, points)
-    liquidity = np.exp(-((prices - price) ** 2) / (2 * ((upper_bound - lower_bound) / 5) ** 2))
+    
+    if profile_type == 'flat':
+        liquidity = np.ones_like(prices)
+    elif profile_type == 'linear':
+        liquidity = np.linspace(1, 0.1, points) if lower_bound < price else np.linspace(0.1, 1, points)
+    else:  # Gaussian default
+        liquidity = np.exp(-((prices - price) ** 2) / (2 * ((upper_bound - lower_bound) / 5) ** 2))
+    
     return prices, liquidity
 
 st.title("Liquidity Profile Generator")
@@ -14,6 +21,10 @@ st.title("Liquidity Profile Generator")
 price = st.number_input("Enter the current price:", min_value=0.01, value=100.0)
 lower_bound = st.number_input("Enter the lower bound of the price range:", min_value=0.01, value=80.0)
 upper_bound = st.number_input("Enter the upper bound of the price range:", min_value=0.01, value=120.0)
+
+profile_options = ["flat", "linear", "gauss"]
+below_profile = st.selectbox("Select liquidity profile below price:", profile_options, index=2)
+above_profile = st.selectbox("Select liquidity profile above price:", profile_options, index=2)
 
 def validate_inputs():
     if lower_bound >= upper_bound:
@@ -27,8 +38,8 @@ def validate_inputs():
 if st.button("Generate Liquidity Profile"):
     if validate_inputs():
         # Generate two separate liquidity profiles
-        prices_below, liquidity_below = generate_liquidity_profile(price, lower_bound, price)
-        prices_above, liquidity_above = generate_liquidity_profile(price, price, upper_bound)
+        prices_below, liquidity_below = generate_liquidity_profile(price, lower_bound, price, profile_type=below_profile)
+        prices_above, liquidity_above = generate_liquidity_profile(price, price, upper_bound, profile_type=above_profile)
         
         df_below = pd.DataFrame({"Price": prices_below, "Liquidity": liquidity_below})
         df_above = pd.DataFrame({"Price": prices_above, "Liquidity": liquidity_above})
@@ -58,3 +69,4 @@ if st.button("Generate Liquidity Profile"):
         )
         
         st.plotly_chart(fig, use_container_width=True)
+
