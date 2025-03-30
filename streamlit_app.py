@@ -33,29 +33,28 @@ if st.button("Generate Liquidity Profile"):
         df_below = pd.DataFrame({"Price": prices_below, "Liquidity": liquidity_below})
         df_above = pd.DataFrame({"Price": prices_above, "Liquidity": liquidity_above})
         
-        st.write("Liquidity Profile Below Price:")
-        st.write(df_below)
+        st.write("Modify Liquidity Profile Below Price:")
+        df_below = st.data_editor(df_below, num_rows="fixed")
         
-        st.write("Liquidity Profile Above Price:")
-        st.write(df_above)
+        st.write("Modify Liquidity Profile Above Price:")
+        df_above = st.data_editor(df_above, num_rows="fixed")
         
-        # Create interactive scatter plot with editable points
+        # Create interactive scatter plot with updated values
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=df_below["Price"], y=df_below["Liquidity"], mode='markers',
-            name='Below Price', marker=dict(size=10),
+            x=df_below["Price"], y=df_below["Liquidity"], mode='markers+lines',
+            name='Below Price', marker=dict(size=10), line=dict(dash='dash')
         ))
         fig.add_trace(go.Scatter(
-            x=df_above["Price"], y=df_above["Liquidity"], mode='markers',
-            name='Above Price', marker=dict(size=10),
+            x=df_above["Price"], y=df_above["Liquidity"], mode='markers+lines',
+            name='Above Price', marker=dict(size=10)
         ))
         
         fig.update_layout(
             title="Interactive Liquidity Profile",
             xaxis_title="Price",
             yaxis_title="Liquidity",
-            dragmode="pan",
-            editable=True
+            dragmode="pan"
         )
         
         st.plotly_chart(fig, use_container_width=True)
