@@ -34,3 +34,9 @@ if st.button("Generate Liquidity Profile"):
         fig = px.line(df, x="Price", y="Liquidity", markers=True, title="Liquidity Profile")
         fig.update_layout(xaxis_title="Price", yaxis_title="Liquidity")
         st.plotly_chart(fig)
+
+        
+        # Plotting the liquidity profile with Plotly
+        fig = px.line(df, x="Price", y="Liquidity", markers=True, title="Liquidity Profile")
+        fig.update_layout(xaxis_title="Price", yaxis_title="Liquidity")
+        st.plotly_chart(fig)
